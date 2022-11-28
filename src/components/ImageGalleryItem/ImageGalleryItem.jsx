@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Component } from 'react';
 import { Modal } from 'components/Modal';
 import { GalleryItem, GalleryImg } from './ImageGalleryItem.styled';
@@ -5,6 +6,13 @@ import { GalleryItem, GalleryImg } from './ImageGalleryItem.styled';
 export class ImageGalleryItem extends Component {
   state = {
     showModal: false,
+  };
+
+  static propTypes = {
+    id: PropTypes.number,
+    webformatURL: PropTypes.string.isRequired,
+    largeImageURL: PropTypes.string.isRequired,
+    tags: PropTypes.string.isRequired,
   };
 
   toggleModal = () => {
@@ -20,7 +28,7 @@ export class ImageGalleryItem extends Component {
     return (
       <>
         <GalleryItem key={id} onClick={this.toggleModal}>
-          <GalleryImg src={webformatURL} alt={tags} />
+          <GalleryImg src={webformatURL} alt={tags} width="400" />
         </GalleryItem>
 
         {showModal && (
