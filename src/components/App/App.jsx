@@ -8,7 +8,7 @@ import { Searchbar } from 'components/Searchbar';
 import { ImageGallery } from 'components/ImageGallery';
 import { ButtonLoadMore } from 'components/ButtonLoadMore';
 
-import { StyledApp } from './App.styled';
+import { StyledApp, ErrorMessage } from './App.styled';
 import * as API from '../../services/pixabayAPI';
 
 export class App extends Component {
@@ -34,7 +34,8 @@ export class App extends Component {
     });
   };
 
-  // Ф-ция, которую пропосм передаем на кнопку Load More, вызываеться при клике
+  // Ф-ция, которую пропсом передаем на кнопку Load More, вызываеться при клике,
+  // увеличиваем page на 1
   handleLoadMore = () => {
     this.setState(prevState => ({ page: prevState.page + 1 }));
   };
@@ -53,6 +54,7 @@ export class App extends Component {
           currentPage
         );
 
+        // если нам пришел пустой массив с images, значит такой картинки нет -> вызываем нотификацию:
         if (images.length === 0) {
           toast.error('There are no images matching your request.');
         }
@@ -86,7 +88,11 @@ export class App extends Component {
         <Searchbar onSubmit={this.handleSubmit} />
         <ToastContainer position="top-right" autoClose={3000} />
 
-        {error && <p>Oops! Something went wrong. Try reloading the page</p>}
+        {error && (
+          <ErrorMessage>
+            Oops! Something went wrong. Try reloading the page
+          </ErrorMessage>
+        )}
 
         <ImageGallery images={images} />
 
