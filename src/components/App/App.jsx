@@ -43,19 +43,30 @@ export class App extends Component {
     this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
+  mapHitsToImages = hits => {
+    return hits.map(({ id, webformatURL, largeImageURL, tags }) => ({
+      id,
+      webformatURL,
+      largeImageURL,
+      tags,
+    }));
+  };
+
   // При обновлении стейта (или новый сабмит, или клик на конпку load more) - делаем запрос с соответсвующими параметрами
   async componentDidUpdate(_, prevState) {
     const { query: currentQuery, page: currentPage } = this.state;
     const { page: prevPage } = prevState;
 
-    if (this.state.isOnSubmit && !this.state.isLoading) {
-      try {
+    try {
+      if (this.state.isOnSubmit && !this.state.isLoading) {
         this.setState({ isLoading: true });
 
-        const { hits: images, total: totalImages } = await API.getImages(
+        const { hits, total: totalImages } = await API.getImages(
           currentQuery,
           currentPage
         );
+
+        const images = this.mapHitsToImages(hits);
 
         // если нам пришел пустой массив с images, значит такой картинки нет -> вызываем нотификацию:
         if (images.length === 0) {
@@ -68,24 +79,21 @@ export class App extends Component {
           totalImages,
           isOnSubmit: false,
         });
-      } catch (error) {
-        this.setState({ error: true, isLoading: false });
-        console.log(error);
-      }
-    } else if (prevPage !== currentPage) {
-      try {
+      } else if (prevPage !== currentPage) {
         this.setState({ isLoading: true });
 
-        const { hits: images } = await API.getImages(currentQuery, currentPage);
+        const { hits } = await API.getImages(currentQuery, currentPage);
+
+        const images = this.mapHitsToImages(hits);
 
         this.setState(prevState => ({
           images: [...prevState.images, ...images],
           isLoading: false,
         }));
-      } catch (error) {
-        this.setState({ error: true, isLoading: false });
-        console.log(error);
       }
+    } catch (error) {
+      this.setState({ error: true, isLoading: false });
+      console.log(error);
     }
   }
 
@@ -102,7 +110,7 @@ export class App extends Component {
           </ErrorMessage>
         )}
 
-        <ImageGallery images={images} />
+        {images.length > 0 && <ImageGallery images={images} />}
 
         <MagnifyingGlass
           visible={isLoading && true}
