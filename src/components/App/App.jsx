@@ -19,7 +19,6 @@ export class App extends Component {
     isLoading: false,
     error: false,
     totalImages: 0,
-    isOnSubmit: null,
   };
   // Ф-ция, которую передаем пропсом в форму и там ее вызываем при сабмите с параметром query
   // и устанавливаем новое квери сбрасываем при этом images
@@ -29,11 +28,15 @@ export class App extends Component {
       return;
     }
 
+    if (query === this.state.query) {
+      toast.info('Same request. Enter a new word');
+      return;
+    }
+
     this.setState({
       images: [],
       page: 1,
       query,
-      isOnSubmit: true,
     });
   };
 
@@ -55,10 +58,10 @@ export class App extends Component {
   // При обновлении стейта (или новый сабмит, или клик на конпку load more) - делаем запрос с соответсвующими параметрами
   async componentDidUpdate(_, prevState) {
     const { query: currentQuery, page: currentPage } = this.state;
-    const { page: prevPage } = prevState;
+    const { query: prevQuery, page: prevPage } = prevState;
 
     try {
-      if (this.state.isOnSubmit && !this.state.isLoading) {
+      if (currentQuery !== prevQuery) {
         this.setState({ isLoading: true });
 
         const { hits, total: totalImages } = await API.getImages(
@@ -77,7 +80,6 @@ export class App extends Component {
           images,
           isLoading: false,
           totalImages,
-          isOnSubmit: false,
         });
       } else if (prevPage !== currentPage) {
         this.setState({ isLoading: true });
