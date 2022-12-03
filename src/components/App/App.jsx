@@ -55,47 +55,43 @@ export class App extends Component {
     }));
   };
 
+  setNewStateFromRequest = async (currentQuery, currentPage) => {
+    try {
+      this.setState({ isLoading: true });
+
+      const { hits, total: totalImages } = await API.getImages(
+        currentQuery,
+        currentPage
+      );
+
+      const images = this.mapHitsToImages(hits);
+      // если нам пришел пустой массив с images, значит такой картинки нет -> вызываем нотификацию:
+      if (images.length === 0) {
+        toast.error('There are no images matching your request.');
+      }
+
+      this.setState(prevState => {
+        return {
+          images: [...prevState.images, ...images],
+          isLoading: false,
+          totalImages,
+        };
+      });
+    } catch (error) {
+      this.setState({ error: true, isLoading: false });
+      console.log(error);
+    }
+  };
+
   // При обновлении стейта (или новый сабмит, или клик на конпку load more) - делаем запрос с соответсвующими параметрами
   async componentDidUpdate(_, prevState) {
     const { query: currentQuery, page: currentPage } = this.state;
     const { query: prevQuery, page: prevPage } = prevState;
 
-    try {
-      if (currentQuery !== prevQuery) {
-        this.setState({ isLoading: true });
-
-        const { hits, total: totalImages } = await API.getImages(
-          currentQuery,
-          currentPage
-        );
-
-        const images = this.mapHitsToImages(hits);
-
-        // если нам пришел пустой массив с images, значит такой картинки нет -> вызываем нотификацию:
-        if (images.length === 0) {
-          toast.error('There are no images matching your request.');
-        }
-
-        this.setState({
-          images,
-          isLoading: false,
-          totalImages,
-        });
-      } else if (prevPage !== currentPage) {
-        this.setState({ isLoading: true });
-
-        const { hits } = await API.getImages(currentQuery, currentPage);
-
-        const images = this.mapHitsToImages(hits);
-
-        this.setState(prevState => ({
-          images: [...prevState.images, ...images],
-          isLoading: false,
-        }));
-      }
-    } catch (error) {
-      this.setState({ error: true, isLoading: false });
-      console.log(error);
+    if (currentQuery !== prevQuery) {
+      this.setNewStateFromRequest(currentQuery, currentPage);
+    } else if (prevPage !== currentPage) {
+      this.setNewStateFromRequest(currentQuery, currentPage);
     }
   }
 
